@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 
@@ -227,7 +228,7 @@ func newCephFilesystemStorageClassConfiguration(initData *ocsv1.StorageCluster) 
 					"description": "Provides RWO and RWX Filesystem volumes",
 				},
 			},
-			Provisioner:   fmt.Sprintf("%s.cephfs.csi.ceph.com", initData.Namespace),
+			Provisioner:   fmt.Sprintf("%s.cephfs.csi.ceph.com", os.Getenv(util.OperatorNamespaceEnvVar)),
 			ReclaimPolicy: &persistentVolumeReclaimDelete,
 			// AllowVolumeExpansion is set to true to enable expansion of OCS backed Volumes
 			AllowVolumeExpansion: &allowVolumeExpansion,
@@ -261,7 +262,7 @@ func newCephBlockPoolStorageClassConfiguration(initData *ocsv1.StorageCluster) S
 					"description": "Provides RWO Filesystem volumes, and RWO and RWX Block volumes",
 				},
 			},
-			Provisioner:   fmt.Sprintf("%s.rbd.csi.ceph.com", initData.Namespace),
+			Provisioner:   fmt.Sprintf("%s.rbd.csi.ceph.com", os.Getenv(util.OperatorNamespaceEnvVar)),
 			ReclaimPolicy: &persistentVolumeReclaimDelete,
 			// AllowVolumeExpansion is set to true to enable expansion of OCS backed Volumes
 			AllowVolumeExpansion: &allowVolumeExpansion,
@@ -288,8 +289,10 @@ func newCephBlockPoolStorageClassConfiguration(initData *ocsv1.StorageCluster) S
 // newCephBlockPoolVirtualizationStorageClassConfiguration generates configuration options for a Ceph Block Pool StorageClass for virtualization environment.
 func newCephBlockPoolVirtualizationStorageClassConfiguration(initData *ocsv1.StorageCluster) StorageClassConfiguration {
 	virtualizationStorageClassConfig := newCephBlockPoolStorageClassConfiguration(initData)
-	virtualizationStorageClassConfig.storageClass.ObjectMeta.Name = generateNameForCephBlockPoolVirtualizationSC(initData)
-	virtualizationStorageClassConfig.storageClass.ObjectMeta.Annotations["description"] = "Provides RWO and RWX Block volumes suitable for Virtual Machine disks"
+	meta := &virtualizationStorageClassConfig.storageClass.ObjectMeta
+	meta.Name = generateNameForCephBlockPoolVirtualizationSC(initData)
+	meta.Annotations["description"] = "Provides RWO and RWX Block volumes suitable for Virtual Machine disks"
+	meta.Annotations["storageclass.kubevirt.io/is-default-virt-class"] = "true"
 	virtualizationStorageClassConfig.storageClass.Parameters["mounter"] = "rbd"
 	virtualizationStorageClassConfig.storageClass.Parameters["mapOptions"] = "krbd:rxbounce"
 	return virtualizationStorageClassConfig
@@ -308,7 +311,7 @@ func newNonResilientCephBlockPoolStorageClassConfiguration(initData *ocsv1.Stora
 					"description": "Ceph Non Resilient Pools : Provides RWO Filesystem volumes, and RWO and RWX Block volumes",
 				},
 			},
-			Provisioner:       fmt.Sprintf("%s.rbd.csi.ceph.com", initData.Namespace),
+			Provisioner:       fmt.Sprintf("%s.rbd.csi.ceph.com", os.Getenv(util.OperatorNamespaceEnvVar)),
 			ReclaimPolicy:     &persistentVolumeReclaimDelete,
 			VolumeBindingMode: &volumeBindingWaitForFirstConsumer,
 			// AllowVolumeExpansion is set to true to enable expansion of OCS backed Volumes
@@ -390,7 +393,7 @@ func newCephOBCStorageClassConfiguration(initData *ocsv1.StorageCluster) Storage
 					"description": "Provides Object Bucket Claims (OBCs)",
 				},
 			},
-			Provisioner:   fmt.Sprintf("%s.ceph.rook.io/bucket", initData.Namespace),
+			Provisioner:   fmt.Sprintf("%s.ceph.rook.io/bucket", os.Getenv(util.OperatorNamespaceEnvVar)),
 			ReclaimPolicy: &reclaimPolicy,
 			Parameters: map[string]string{
 				"objectStoreNamespace": initData.Namespace,
