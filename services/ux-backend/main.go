@@ -9,6 +9,7 @@ import (
 
 	"k8s.io/klog/v2"
 
+	"github.com/red-hat-storage/ocs-operator/v4/services/ux-backend/handlers/deploymentcapablity"
 	"github.com/red-hat-storage/ocs-operator/v4/services/ux-backend/handlers/onboardingtokens"
 )
 
@@ -63,6 +64,7 @@ func main() {
 	}
 	http.HandleFunc("/onboarding-tokens", func(w http.ResponseWriter, r *http.Request) {
 		onboardingtokens.HandleMessage(w, r, config.tokenLifetimeInHours)
+		deploymentcapablity.HandleMessage(w, r)
 	})
 
 	klog.Info("ux backend server listening on port ", config.listenPort)
