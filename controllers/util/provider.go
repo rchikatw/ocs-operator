@@ -15,11 +15,13 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/red-hat-storage/ocs-operator/v4/services"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 // GenerateOnboardingToken generates a token valid for a duration of "tokenLifetimeInHours".
 // The token content is predefined and signed by the private key which'll be read from supplied "privateKeyPath".
-func GenerateOnboardingToken(tokenLifetimeInHours int, privateKeyPath string) (string, error) {
+// The quantity is optional, and it is used to limit the storage of PVC in the application cluster.
+func GenerateOnboardingToken(tokenLifetimeInHours int, privateKeyPath string, quantity *resource.Quantity) (string, error) {
 	tokenExpirationDate := time.Now().
 		Add(time.Duration(tokenLifetimeInHours) * time.Hour).
 		Unix()
@@ -27,6 +29,7 @@ func GenerateOnboardingToken(tokenLifetimeInHours int, privateKeyPath string) (s
 	payload, err := json.Marshal(services.OnboardingTicket{
 		ID:             uuid.New().String(),
 		ExpirationDate: tokenExpirationDate,
+		Quota:          quantity,
 	})
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal the payload: %v", err)
