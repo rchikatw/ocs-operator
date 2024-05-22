@@ -35,6 +35,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	klog "k8s.io/klog/v2"
@@ -111,7 +112,12 @@ func (s *OCSProviderServer) OnboardConsumer(ctx context.Context, req *pb.Onboard
 		return nil, status.Errorf(codes.InvalidArgument, "onboarding ticket is not valid. %v", err)
 	}
 
-	storageConsumerUUID, err := s.consumerManager.Create(ctx, req)
+	quantity, err := getQuantity(req.OnboardingTicket)
+	if err != nil {
+		klog.Errorf("failed to validate quota in onboarding ticket for consumer %q. %v", req.ConsumerName, err)
+		return nil, status.Errorf(codes.InvalidArgument, "onboarding ticket is not valid. %v", err)
+	}
+	storageConsumerUUID, err := s.consumerManager.Create(ctx, quantity, req)
 	if err != nil {
 		if !kerrors.IsAlreadyExists(err) && err != errTicketAlreadyExists {
 			return nil, status.Errorf(codes.Internal, "failed to create storageConsumer %q. %v", req.ConsumerName, err)
@@ -721,4 +727,25 @@ func (s *OCSProviderServer) getOCSSubscriptionChannel(ctx context.Context) (stri
 		return "", fmt.Errorf("unable to find ocs-operator subscription")
 	}
 	return subscription.Spec.Channel, nil
+}
+
+func getQuantity(onboardingTicket string) (*resource.Quantity, error) {
+	ticketArr := strings.Split(onboardingTicket, ".")
+	message, err := base64.StdEncoding.DecodeString(ticketArr[0])
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode onboarding ticket: %v", err)
+	}
+
+	var ticketData services.OnboardingTicket
+	err = json.Unmarshal(message, &ticketData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal onboarding ticket message. %v", err)
+	}
+
+	// When length is 0 that means request body is empty and quota
+	// is unlimited
+	if ticketData.StorageQuota == nil {
+		return nil, nil
+	}
+	return ticketData.StorageQuota, nil
 }

@@ -40,6 +40,8 @@ const (
 type StorageConsumerSpec struct {
 	// Enable flag ignores a reconcile if set to false
 	Enable bool `json:"enable,omitempty"`
+	// StorageQuota describes the total quota consumed by application cluster
+	StorageQuota string `json:"storageQuota,omitempty"`
 }
 
 // CephResourcesSpec hold details of created ceph resources required for external storage

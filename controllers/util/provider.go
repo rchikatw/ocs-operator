@@ -29,7 +29,7 @@ func GenerateOnboardingToken(tokenLifetimeInHours int, privateKeyPath string, qu
 	payload, err := json.Marshal(services.OnboardingTicket{
 		ID:             uuid.New().String(),
 		ExpirationDate: tokenExpirationDate,
-		Quota:          quantity,
+		StorageQuota:   quantity,
 	})
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal the payload: %v", err)

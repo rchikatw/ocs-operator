@@ -9,6 +9,7 @@ import (
 	ocsv1alpha1 "github.com/red-hat-storage/ocs-operator/api/v4/v1alpha1"
 	ifaces "github.com/red-hat-storage/ocs-operator/v4/services/provider/interfaces"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/klog/v2"
@@ -54,7 +55,7 @@ func newConsumerManager(ctx context.Context, cl client.Client, namespace string)
 }
 
 // Create creates a new storageConsumer resource, updates the consumer cache and returns the storageConsumer UID
-func (c *ocsConsumerManager) Create(ctx context.Context, onboard ifaces.StorageClientOnboarding) (string, error) {
+func (c *ocsConsumerManager) Create(ctx context.Context, quantity *resource.Quantity, onboard ifaces.StorageClientOnboarding) (string, error) {
 	ticket := onboard.GetOnboardingTicket()
 	name := onboard.GetConsumerName()
 	c.mutex.RLock()
@@ -74,7 +75,8 @@ func (c *ocsConsumerManager) Create(ctx context.Context, onboard ifaces.StorageC
 			},
 		},
 		Spec: ocsv1alpha1.StorageConsumerSpec{
-			Enable: false,
+			Enable:       false,
+			StorageQuota: string(quantity.Format),
 		},
 		Status: ocsv1alpha1.StorageConsumerStatus{
 			Client: ocsv1alpha1.ClientStatus{

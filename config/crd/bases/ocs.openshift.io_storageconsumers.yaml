@@ -38,6 +38,10 @@ spec:
               enable:
                 description: Enable flag ignores a reconcile if set to false
                 type: boolean
+              storageQuota:
+                description: StorageQuota describes the total quota consumed by application
+                  cluster
+                type: string
             type: object
           status:
             description: StorageConsumerStatus defines the observed state of StorageConsumer

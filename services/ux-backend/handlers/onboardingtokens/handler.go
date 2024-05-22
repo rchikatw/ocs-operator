@@ -12,10 +12,11 @@ import (
 )
 
 const (
-	onboardingPrivateKeyFilePath = "/etc/private-key/key"
+	onboardingPrivateKeyFilePath = "/home/ritesh/ticket/key.rsa"
 )
 
 func HandleMessage(w http.ResponseWriter, r *http.Request, tokenLifetimeInHours int) {
+
 	switch r.Method {
 	case "POST":
 		handlePost(w, tokenLifetimeInHours, r)
@@ -80,5 +81,4 @@ func getQuantity(r *http.Request) (*resource.Quantity, error) {
 		return nil, fmt.Errorf("invalid quota value sent in request body: %v", err)
 	}
 	return &quantity, nil
-
 }

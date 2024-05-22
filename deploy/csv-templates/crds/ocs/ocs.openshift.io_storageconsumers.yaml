@@ -38,6 +38,9 @@ spec:
               enable:
                 description: Enable flag ignores a reconcile if set to false
                 type: boolean
+              quota:
+                description: Name describes the name of created ceph resource
+                type: string
             type: object
           status:
             description: StorageConsumerStatus defines the observed state of StorageConsumer
