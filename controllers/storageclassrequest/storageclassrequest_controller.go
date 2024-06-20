@@ -380,8 +380,8 @@ func (r *StorageClassRequestReconciler) reconcileCephBlockPool(storageProfile *v
 				FailureDomain: failureDomain,
 				DeviceClass:   deviceClass,
 				Replicated: rookCephv1.ReplicatedSpec{
-					Size:                     3,
-					ReplicasPerFailureDomain: 1,
+					Size:                     4,
+					ReplicasPerFailureDomain: 2,
 				},
 				Parameters: storageProfile.Spec.BlockPoolConfiguration.Parameters,
 			},
