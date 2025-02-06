@@ -199,6 +199,17 @@ spec:
       for: 30s
       labels:
         severity: warning
+    - alert: CephOSDDown
+      annotations:
+        description: |
+          {{ $num := query "count(ceph_osd_up == 0)" | first | value }}{{ $s := "" }}{{ if gt $num 1.0 }}{{ $s = "s" }}{{ end }}{{ $num }} OSD{{ $s }} down for over 5mins. The following OSD{{ $s }} {{ if eq $s "" }}is{{ else }}are{{ end }} down: {{- range query "(ceph_osd_up * on(ceph_daemon) group_left(hostname) ceph_osd_metadata) == 0"}} - {{ .Labels.ceph_daemon }} on {{ .Labels.hostname }} {{- end }}
+        runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/openshift-container-storage-operator/CephOSDDown.md
+        message: An OSD has been marked down
+      expr: |
+        ceph_health_detail{name=\"OSD_DOWN\"} == 1
+      for: 5m
+      labels:
+        severity: "warning"
     - alert: CephDataRecoveryTakingTooLong
       annotations:
         description: Data recovery has been active for too long. Contact Support.
